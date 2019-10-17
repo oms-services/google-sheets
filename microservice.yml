@@ -2,6 +2,10 @@ omg: 1
 lifecycle:
   startup:
     command: ["google-sheets"]
+health:
+  http:
+    path: /health
+    port: 3000
 info:
   version: 1.0.0
   title: Google Spreadsheet.
@@ -27,19 +31,24 @@ actions:
         in: requestBody
         required: true
         help: Title for new spreadsheet.
+      emailAddress: 
+        type: string
+        in: requestBody
+        required: true
+        help: The gmail email address of the user or group to which this drive permission refers (used to view sheet from email address drive account).
+      role:
+        type: string
+        in: requestBody
+        required: true
+        help: The role granted by this permission, the roles currently allowed - writer ( recommended ), organizer , fileOrganizer, commenter , reader.
+      type: 
+        type: string
+        in: requestBody
+        required: true
+        help: The type of the grantee. the types currently allowed - user ( recommended ), group, domain, anyone.
     output:   
-      type: object
+      type: map
       contentType: application/json
-      properties:
-        spreadsheetId:
-          help: Google spreadsheet ID.
-          type: string
-        properties:
-          help: Spreadsheet properties.
-          type: object
-        sheets:
-          help: List of sheet properties, tabColor and data.
-          type: list
   findSpreadsheet:
     help: Get spreadsheet by ID.
     http:
@@ -54,18 +63,8 @@ actions:
         required: true
         help: The ID of spreadsheet.
     output:   
-      type: object
+      type: map
       contentType: application/json
-      properties:
-        spreadsheetId:
-          help: Google spreadsheet ID.
-          type: string
-        properties:
-          help: Spreadsheet properties.
-          type: object
-        sheets:
-          help: List of all sheet properties, tabColor and data.
-          type: list
   addSheet:
     help: Add new sheet in spreadsheet.
     http:
@@ -85,20 +84,10 @@ actions:
         required: true
         help: The title for new sheet.
     output:
-      type: object
+      type: map
       contentType: application/json
-      properties:
-        success:
-          help: Returns success status.
-          type: boolean
-        message:
-          help: Success message or error if any occurred.
-          type: string
-        statusCode:
-          help: HTTP status code.
-          type: int
   findSheet:
-    help: Get sheet by ID, Index or Title.
+    help: Get sheet by sheet title.
     http:
       port: 3000
       method: post
@@ -110,31 +99,14 @@ actions:
         in: requestBody
         required: true
         help: The ID of spreadsheet.
-      sheetId:
-        type: int
-        in: requestBody
-        help: The ID of sheet.
-      sheetIndex:
-        type: int
-        in: requestBody
-        help: The index of sheet.
-      sheetTitle: 
+      sheetTitle:
         type: string
         in: requestBody
+        required: true
         help: The title of sheet.
     output:
-      type: object
+      type: map
       contentType: application/json
-      properties:
-        success:
-          help: Returns success status.
-          type: boolean
-        message:
-          help: Success message or error if any occurred.
-          type: string
-        statusCode:
-          help: HTTP status code.
-          type: int
   updateSheetSize:
     help: Update sheets row and column.
     http:
@@ -148,34 +120,24 @@ actions:
         in: requestBody
         required: true
         help: The ID of spreadsheet.
-      sheetTitle: 
-        type: string
+      sheetId: 
+        type: int
         in: requestBody
         required: true
-        help: The title of sheet.
+        help: The ID of sheet.
       row: 
         type: int
         in: requestBody
         required: true
-        help: Update rows in sheet.
+        help: Length of rows to add in sheet.
       column: 
         type: int
         in: requestBody
         required: true
-        help: Update columns in sheet.
+        help: Length of columns to add in sheet.
     output:
-      type: object
+      type: map
       contentType: application/json
-      properties:
-        success:
-          help: Returns success status.
-          type: boolean
-        message:
-          help: Success message or error if any occurred.
-          type: string
-        statusCode:
-          help: HTTP status code.
-          type: int
   updateCell:
     help: Update sheet content.
     http:
@@ -194,75 +156,19 @@ actions:
         in: requestBody
         required: true
         help: The title of sheet.
-      row: 
-        type: int
+      cellNumber:
+        type: string
         in: requestBody
         required: true
-        help: The row number of sheet (value starts from 1).
-      column: 
-        type: int
-        in: requestBody
-        required: true
-        help: The column number of sheet (value starts from 1).
+        help: The cell number eg - A1.
       content: 
         type: string
         in: requestBody
         required: true
         help: The content to update on cell of sheet.
     output:
-      type: object
+      type: map
       contentType: application/json
-      properties:
-        success:
-          help: Returns success status.
-          type: boolean
-        message:
-          help: Success message or error if any occurred.
-          type: string
-        statusCode:
-          help: HTTP status code.
-          type: int
-  getCell:
-    help: Get sheet content.
-    http:
-      port: 3000
-      method: post
-      path: /getCell
-      contentType: application/json
-    arguments:
-      spreadsheetId:
-        type: string
-        in: requestBody
-        required: true
-        help: The ID of spreadsheet.
-      sheetTitle: 
-        type: string
-        in: requestBody
-        required: true
-        help: The title of sheet.
-      row: 
-        type: int
-        in: requestBody
-        required: true
-        help: The row number of sheet (value starts from 1).
-      column: 
-        type: int
-        in: requestBody
-        required: true
-        help: The column number of sheet (value starts from 1).
-    output:
-      type: object
-      contentType: application/json
-      properties:
-        success:
-          help: Returns success status.
-          type: boolean
-        message:
-          help: Success message or error if any occurred.
-          type: string
-        statusCode:
-          help: HTTP status code.
-          type: int
   deleteSheet:
     help: Delete sheet.
     http:
@@ -280,23 +186,37 @@ actions:
         type: int
         in: requestBody
         required: true
-        help: The ID of sheet to delete (To delete first sheet ID will be 0).
+        help: The ID of sheet to delete (To delete first sheet use ID 0).
     output:
-      type: object
+      type: map
       contentType: application/json
-      properties:
-        success:
-          help: Returns success status.
-          type: boolean
-        message:
-          help: Success message or error if any occurred.
-          type: string
-        statusCode:
-          help: HTTP status code.
-          type: int
+  listener:
+    help: Listening to provided sheet ID and sheet title for new row updated.
+    events:
+      newRowUpdate:
+        help: Triggered any new row is added.
+        http: 
+          port: 3000
+          subscribe:
+            method: post
+            path: /subscribe
+        arguments:
+          spreadsheetID:
+            type: string
+            in: requestBody
+            required: true
+            help: The spreadsheet ID to subscribe.
+          sheetTitle:
+            type: string
+            in: requestBody
+            required: true
+            help: The title of sheet to subscribe.
+        output:
+          contentType: application/json
+          type: map
 environment:
-  KEY:
+  CREDENTIAL_JSON:
     type: string
     required: true
-    help: Base64 data of credential's key file.
+    help: Base64 data of credential.json' file.
     
